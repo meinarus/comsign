@@ -65,7 +65,7 @@ export function LoginForm() {
   return (
     <Card className="max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-xl font-bold sm:text-2xl">Log In</CardTitle>
+        <CardTitle className="text-xl font-bold sm:text-2xl">Login</CardTitle>
         <CardDescription>
           Enter your email below to login to your account
         </CardDescription>

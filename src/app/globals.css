@@ -120,9 +120,3 @@
     @apply bg-background text-foreground;
   }
 }
-
-@layer components {
-  .navbar {
-    @apply bg-background sticky top-0 z-50 hidden border-b sm:flex;
-  }
-}
