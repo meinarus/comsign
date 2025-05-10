@@ -20,8 +20,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { signIn } from "@/lib/auth-client";
@@ -37,7 +35,6 @@ const formSchema = z.object({
 export function LoginForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -81,9 +78,11 @@ export function LoginForm() {
   return (
     <Card className="max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-xl font-bold sm:text-2xl">Login</CardTitle>
+        <CardTitle className="text-xl font-bold sm:text-2xl">
+          Log in to ComSign
+        </CardTitle>
         <CardDescription>
-          Enter your email below to login to your account
+          Enter your credentials to login to your account.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -144,15 +143,6 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="remember"
-                checked={rememberMe}
-                onCheckedChange={() => setRememberMe(!rememberMe)}
-              />
-              <Label htmlFor="remember">Remember me</Label>
-            </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
