@@ -24,6 +24,8 @@ import { useState } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { signUp } from "@/lib/auth-client";
 import Link from "next/link";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -32,6 +34,7 @@ const formSchema = z.object({
 });
 
 export function SignupForm() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -45,16 +48,38 @@ export function SignupForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setLoading(true);
     try {
-      await signUp.email({
-        name: values.name,
-        email: values.email,
-        password: values.password,
+      await signUp.email(
+        {
+          email: values.email,
+          password: values.password,
+          name: values.name,
+          callbackURL: "/dashboard",
+        },
+        {
+          onRequest: () => {
+            setLoading(true);
+          },
+          onSuccess: () => {
+            toast.success("Account Created", {
+              description: "Admin approval pending.",
+            });
+
+            router.push("/login");
+          },
+          onError: (ctx) => {
+            toast.error("Signup Failed", {
+              description:
+                ctx.error.message ??
+                "An unexpected error occurred. Please try again.",
+            });
+          },
+        },
+      );
+    } catch {
+      toast.error("Error", {
+        description: "Something went wrong. Please try again.",
       });
-      console.log(values);
-    } catch (error) {
-      console.error("Sign in failed", error);
     } finally {
       setLoading(false);
     }

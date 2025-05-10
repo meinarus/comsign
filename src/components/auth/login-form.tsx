@@ -26,7 +26,8 @@ import { useState } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { signIn } from "@/lib/auth-client";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -34,6 +35,7 @@ const formSchema = z.object({
 });
 
 export function LoginForm() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -47,16 +49,30 @@ export function LoginForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setLoading(true);
     try {
-      await signIn.email({
-        email: values.email,
-        password: values.password,
+      await signIn.email(
+        {
+          email: values.email,
+          password: values.password,
+        },
+        {
+          onRequest: () => {
+            setLoading(true);
+          },
+          onSuccess: () => router.push("/dashboard"),
+          onError: (ctx) => {
+            toast.error("Signin Failed", {
+              description:
+                ctx.error.message ??
+                "An unexpected error occurred. Please try again.",
+            });
+          },
+        },
+      );
+    } catch {
+      toast.error("Error", {
+        description: "Something went wrong. Please try again.",
       });
-      console.log(values);
-      redirect("/dashboard");
-    } catch (error) {
-      console.error("Sign in failed", error);
     } finally {
       setLoading(false);
     }

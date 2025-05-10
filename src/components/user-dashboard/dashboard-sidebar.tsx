@@ -17,29 +17,32 @@ import {
 import Link from "next/link";
 import { ClipboardList, ScanLine, Users } from "lucide-react";
 
-const data = {
-  user: {
-    name: "Test User",
-    email: "testuser@email.com",
-    avatar: "/",
+const navMain = [
+  {
+    title: "Attendance",
+    url: "/dashboard/attendance",
+    icon: ClipboardList,
   },
-  navMain: [
-    {
-      title: "Attendance",
-      url: "/dashboard/attendance",
-      icon: ClipboardList,
-    },
-    {
-      title: "Students",
-      url: "/dashboard/students",
-      icon: Users,
-    },
-  ],
-};
+  {
+    title: "Students",
+    url: "/dashboard/students",
+    icon: Users,
+  },
+];
+
+interface DashboardSidebarProps {
+  user:
+    | {
+        name: string;
+        email: string;
+        image?: string | null;
+      }
+    | undefined;
+}
 
 export function DashboardSidebar({
   ...props
-}: React.ComponentProps<typeof Sidebar>) {
+}: React.ComponentProps<typeof Sidebar> & DashboardSidebarProps) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -55,10 +58,10 @@ export function DashboardSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarNavMain items={data.navMain} />
+        <SidebarNavMain items={navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <SidebarNavUser user={data.user} />
+        <SidebarNavUser user={props.user} />
       </SidebarFooter>
     </Sidebar>
   );

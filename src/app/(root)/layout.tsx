@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/navbar";
+import { Toaster } from "sonner";
 
 export default function MainLayout({
   children,
@@ -11,6 +12,7 @@ export default function MainLayout({
       <main className="flex flex-1 items-center justify-center p-4 sm:p-6 md:p-8">
         {children}
       </main>
+      <Toaster />
     </div>
   );
 }
