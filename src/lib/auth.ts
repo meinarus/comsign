@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { user, session, account, verification } from "@/db/schema/auth-schema";
+import { user, session, account, verification } from "@/db/schema/auth";
 import { db } from "@/db/db";
 import { admin } from "better-auth/plugins";
 
