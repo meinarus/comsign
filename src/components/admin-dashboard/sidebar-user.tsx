@@ -97,7 +97,7 @@ export function SidebarNavUser({
                 await authClient.signOut({
                   fetchOptions: {
                     onSuccess: () => {
-                      router.push("/login");
+                      router.replace("/login");
                     },
                   },
                 })

@@ -11,7 +11,7 @@ interface NavbarProps {
 
 export function Navbar({ children }: NavbarProps) {
   return (
-    <header className="bg-background sticky top-0 z-50 flex border-b">
+    <header className="bg-muted sticky top-0 z-50 flex border-b">
       <nav className="container mx-auto flex items-center justify-between p-3 xl:px-30">
         <Link href="/" className="flex items-center gap-2">
           <Image
