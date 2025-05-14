@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
-import { signIn } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -47,7 +47,7 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await signIn.email(
+      await authClient.signIn.email(
         {
           email: values.email,
           password: values.password,
@@ -56,7 +56,7 @@ export function LoginForm() {
           onRequest: () => {
             setLoading(true);
           },
-          onSuccess: () => router.push("/dashboard"),
+          onSuccess: () => router.replace("/dashboard"),
           onError: (ctx) => {
             toast.error("Signin Failed", {
               description:

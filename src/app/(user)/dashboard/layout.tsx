@@ -1,11 +1,11 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/user-dashboard/dashboard-sidebar";
 import { DashboardHeader } from "@/components/user-dashboard/dashboard-header";
-import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 
-export default async function UserLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;

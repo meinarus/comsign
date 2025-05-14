@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
-import { signUp } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -49,7 +49,7 @@ export function SignupForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await signUp.email(
+      await authClient.signUp.email(
         {
           email: values.email,
           password: values.password,

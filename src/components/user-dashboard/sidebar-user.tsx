@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/sidebar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { EllipsisVertical, LogOut } from "lucide-react";
-import { signOut } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
 export function SidebarNavUser({
@@ -94,7 +94,7 @@ export function SidebarNavUser({
 
             <DropdownMenuItem
               onClick={async () =>
-                await signOut({
+                await authClient.signOut({
                   fetchOptions: {
                     onSuccess: () => {
                       router.push("/login");

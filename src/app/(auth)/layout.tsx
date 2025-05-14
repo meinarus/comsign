@@ -1,7 +1,11 @@
+"use server";
+
 import { Navbar } from "@/components/navbar";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { buttonVariants } from "@/components/ui/button";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 
 export default async function AuthLayout({
   children,
@@ -13,12 +17,25 @@ export default async function AuthLayout({
   });
 
   if (session) {
-    return redirect("/dashboard");
+    if (session.user.role === "admin") {
+      return redirect("/admin/dashboard");
+    } else {
+      return redirect("/dashboard");
+    }
   }
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar />
+      <Navbar>
+        <Link
+          href="/login"
+          className={buttonVariants({
+            variant: "default",
+          })}
+        >
+          Log in
+        </Link>
+      </Navbar>
       <main className="flex flex-1 items-center justify-center p-6 md:p-10">
         {children}
       </main>
