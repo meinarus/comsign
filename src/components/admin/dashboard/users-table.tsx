@@ -14,7 +14,6 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { useState, useEffect, useCallback } from "react";
@@ -43,10 +42,6 @@ export default function UsersTable() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [{ pageIndex, pageSize }, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
 
   const columns: ColumnDef<User>[] = [
     {
@@ -135,11 +130,8 @@ export default function UsersTable() {
   const fetchUsers = useCallback(async () => {
     try {
       setIsLoading(true);
-
       const response = await authClient.admin.listUsers({
         query: {
-          limit: pageSize,
-          offset: pageIndex * pageSize,
           sortBy: "createdAt",
           sortDirection: "asc",
         },
@@ -153,7 +145,7 @@ export default function UsersTable() {
     } finally {
       setIsLoading(false);
     }
-  }, [pageIndex, pageSize]);
+  }, []);
 
   useEffect(() => {
     fetchUsers();
@@ -162,17 +154,10 @@ export default function UsersTable() {
   const table = useReactTable({
     data: users,
     columns,
-    state: {
-      globalFilter,
-      pagination: { pageIndex, pageSize },
-    },
-    onPaginationChange: setPagination,
-    manualPagination: true,
-    pageCount: -1,
+    state: { globalFilter },
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     globalFilterFn: "includesString",
   });
@@ -262,25 +247,23 @@ export default function UsersTable() {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage() || isLoading}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage() || isLoading}
-          >
-            Next
-          </Button>
-        </div>
+      <div className="flex items-center justify-end gap-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
+          Next
+        </Button>
       </div>
 
       <EditInfo
