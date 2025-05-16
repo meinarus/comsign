@@ -1,18 +1,15 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "@/components/admin-dashboard/dashboard-sidebar";
-import { DashboardHeader } from "@/components/admin-dashboard/dashboard-header";
+import { DashboardSidebar } from "@/components/admin/dashboard/dashboard-sidebar";
+import { DashboardHeader } from "@/components/admin/dashboard/dashboard-header";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/get-session";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getSession();
 
   if (!session) {
     return redirect("/login");

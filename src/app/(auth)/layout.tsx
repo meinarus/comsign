@@ -1,20 +1,17 @@
 "use server";
 
-import { Navbar } from "@/components/navbar";
+import { Navbar } from "@/components/shared/navbar";
 import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/get-session";
 
 export default async function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getSession();
 
   if (session) {
     if (session.user.role === "admin") {

@@ -1,4 +1,4 @@
-import UsersTable from "@/components/admin-dashboard/users-table";
+import UsersTable from "@/components/admin/dashboard/users-table";
 
 export default async function Page() {
   return (

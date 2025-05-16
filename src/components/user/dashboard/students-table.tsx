@@ -10,8 +10,6 @@ import {
 } from "@/components/ui/table";
 import {
   ColumnDef,
-  ColumnFiltersState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -19,59 +17,54 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useState, useEffect } from "react";
-import { authClient } from "@/lib/auth-client";
+import { useState, useEffect, useCallback } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, MoreHorizontal } from "lucide-react";
+import { Loader2, MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { adminActions } from "@/actions/admin";
-import { User } from "@/types/user";
-import EditInfo from "@/components/admin-dashboard/edit-info";
+import { Student } from "@/types/student";
+import EditInfo from "@/components/user/dashboard/edit-info";
+import { deleteStudent, listStudents } from "@/actions/student";
+import { StudentForm } from "@/components/user/dashboard/student-form";
+import CustomAlertDialog from "@/components/shared/confirm-dialog";
+import { toast } from "sonner";
 
-export default function UsersTable() {
-  const [users, setUsers] = useState<User[]>([]);
+export default function StudentsTable({ userId }: { userId: string }) {
+  const [students, setStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [globalFilter, setGlobalFilter] = useState("");
   const [rowSelection, setRowSelection] = useState({});
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
-  const columns: ColumnDef<User>[] = [
+  const columns: ColumnDef<Student>[] = [
     {
       id: "select",
       header: ({ table }) => (
-        <div className="flex items-center justify-center">
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        </div>
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
       ),
       cell: ({ row }) => (
-        <div className="flex items-center justify-center">
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        </div>
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
       ),
       enableSorting: false,
       enableHiding: false,
@@ -84,37 +77,23 @@ export default function UsersTable() {
       },
     },
     {
-      accessorKey: "email",
-      header: "Email",
+      accessorKey: "studentId",
+      header: "Student ID",
       cell: ({ row }) => {
-        return <div>{row.getValue("email")}</div>;
+        return <div>{row.getValue("studentId")}</div>;
       },
     },
     {
-      accessorKey: "banned",
-      header: "Status",
+      accessorKey: "nfcUid",
+      header: "NFC UID",
+      enableGlobalFilter: false,
       cell: ({ row }) => {
-        return <div>{row.getValue("banned") ? "Banned" : "Active"}</div>;
-      },
-    },
-    {
-      accessorKey: "emailVerified",
-      header: "Verified",
-      cell: ({ row }) => {
-        return <div>{row.getValue("emailVerified") ? "Yes" : "No"}</div>;
-      },
-    },
-
-    {
-      accessorKey: "role",
-      header: "Role",
-      cell: ({ row }) => {
-        return <div className="capitalize">{row.getValue("role")}</div>;
+        return <div>{row.getValue("nfcUid")}</div>;
       },
     },
     {
       accessorKey: "createdAt",
-      header: "Joined",
+      header: "Added On",
       cell: ({ row }) => {
         const date = new Date(row.getValue("createdAt"));
         return <div>{date.toLocaleDateString()}</div>;
@@ -124,7 +103,7 @@ export default function UsersTable() {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
-        const user = row.original;
+        const student = row.original;
 
         return (
           <DropdownMenu>
@@ -137,7 +116,7 @@ export default function UsersTable() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onClick={() => {
-                  setSelectedUser(user);
+                  setSelectedStudent(student);
                   setIsSheetOpen(true);
                 }}
               >
@@ -145,7 +124,10 @@ export default function UsersTable() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => adminActions.deleteUser(user.id)}
+                onClick={() => {
+                  setSelectedStudent(student);
+                  setIsDeleteDialogOpen(true);
+                }}
               >
                 Delete
               </DropdownMenuItem>
@@ -156,101 +138,61 @@ export default function UsersTable() {
     },
   ];
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setIsLoading(true);
+  const fetchStudents = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        const response = await authClient.admin.listUsers({
-          query: { limit: 10 },
-        });
-        if (response?.data) {
-          setUsers(response.data.users as User[]);
-        }
-      } catch (err) {
-        setError(
-          err instanceof Error ? err : new Error("Failed to fetch users"),
-        );
-      } finally {
-        setIsLoading(false);
+      const result = await listStudents(userId);
+
+      if (result.error) {
+        throw new Error(result.error);
       }
-    };
 
-    fetchUsers();
-  }, []);
+      if (result.data) {
+        setStudents(result.data);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err : new Error("Failed to fetch students"),
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
 
   const table = useReactTable({
-    data: users,
+    data: students,
     columns,
-    onColumnFiltersChange: setColumnFilters,
+    state: {
+      globalFilter,
+      rowSelection,
+    },
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    state: {
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
+    globalFilterFn: "includesString",
   });
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center p-4">
-        <span>Loading users...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center p-4">
-        <span className="text-red-500">Error: {error.message}</span>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center gap-2 py-4">
         <Input
-          placeholder="Filter emails..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
-          }
+          placeholder="Search name or student ID..."
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
           className="max-w-sm"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {typeof column.columnDef.header === "string"
-                      ? column.columnDef.header
-                      : column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="ml-auto">
+          <StudentForm userId={userId} refetchStudents={fetchStudents} />
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -259,7 +201,10 @@ export default function UsersTable() {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className="px-4 py-2 text-center"
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -273,14 +218,39 @@ export default function UsersTable() {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 px-4 py-2 text-center"
+                >
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : error ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 px-4 py-2 text-center"
+                >
+                  <div className="text-destructive">
+                    Failed to load students: {error.message}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className="px-4 py-2 text-center whitespace-nowrap"
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -293,7 +263,7 @@ export default function UsersTable() {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-24 px-4 py-2 text-center"
                 >
                   No results.
                 </TableCell>
@@ -330,7 +300,21 @@ export default function UsersTable() {
       <EditInfo
         open={isSheetOpen}
         onOpenChange={setIsSheetOpen}
-        user={selectedUser}
+        student={selectedStudent}
+        refetchStudents={fetchStudents}
+      />
+
+      <CustomAlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        title="Delete Student"
+        description="Are you sure you want to delete this student? This action cannot be undone."
+        onConfirm={async () => {
+          const result = await deleteStudent(selectedStudent?.id || "");
+          if (result?.error) toast.error(result.error);
+          else toast.success("Student deleted");
+          fetchStudents();
+        }}
       />
     </div>
   );

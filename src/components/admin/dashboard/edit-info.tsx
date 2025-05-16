@@ -39,6 +39,7 @@ type UserSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User | null;
+  refetchUsers: () => void;
 };
 
 const formSchema = z.object({
@@ -49,7 +50,12 @@ const formSchema = z.object({
   role: z.enum(["user", "admin"]),
 });
 
-export default function EditInfo({ open, onOpenChange, user }: UserSheetProps) {
+export default function EditInfo({
+  open,
+  onOpenChange,
+  user,
+  refetchUsers,
+}: UserSheetProps) {
   const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -64,7 +70,7 @@ export default function EditInfo({ open, onOpenChange, user }: UserSheetProps) {
   });
 
   useEffect(() => {
-    if (user) {
+    if (user && open) {
       form.reset({
         name: user.name,
         email: user.email,
@@ -73,40 +79,72 @@ export default function EditInfo({ open, onOpenChange, user }: UserSheetProps) {
         role: user.role,
       });
     }
-  }, [user, form]);
+  }, [user, form, open]);
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     if (!user) return;
 
     setLoading(true);
     try {
+      const updates = [];
+
       if (data.name !== user.name) {
-        await adminActions.setName(user.id, data.name);
+        updates.push(adminActions.setName(user.id, data.name));
       }
       if (data.email !== user.email) {
-        await adminActions.setEmail(user.id, data.email);
+        updates.push(adminActions.setEmail(user.id, data.email));
       }
-
       if (data.banned !== user.banned) {
-        await adminActions.setBanned(user.id, data.banned);
+        updates.push(adminActions.setBanned(user.id, data.banned));
       }
-
       if (data.emailVerified !== user.emailVerified) {
-        await adminActions.setEmailVerified(user.id, data.emailVerified);
+        updates.push(
+          adminActions.setEmailVerified(user.id, data.emailVerified),
+        );
       }
-
       if (data.role !== user.role) {
-        await adminActions.setRole(user.id, data.role);
+        updates.push(adminActions.setRole(user.id, data.role));
       }
 
-      toast.success("User updated", {
-        description: "Changes saved successfully.",
+      if (updates.length === 0) {
+        toast.info("No changes detected");
+        return;
+      }
+
+      const results = await Promise.all(updates);
+
+      let hasErrors = false;
+
+      results.forEach((result) => {
+        if (
+          result &&
+          typeof result === "object" &&
+          "error" in result &&
+          typeof (result as { error: unknown }).error === "string"
+        ) {
+          const errorMsg = (result as { error: string }).error;
+          hasErrors = true;
+          if (errorMsg.includes("Email")) {
+            form.setError("email", {
+              type: "manual",
+              message: errorMsg,
+            });
+          }
+        }
       });
 
-      onOpenChange(false);
+      if (!hasErrors) {
+        toast.success("User updated successfully");
+        refetchUsers();
+        onOpenChange(false);
+        form.reset();
+      }
     } catch (error) {
-      toast.error("User failed", {
-        description: String(error) || "An unexpected error occurred.",
+      toast.error("Update failed", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
       });
     } finally {
       setLoading(false);

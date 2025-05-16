@@ -15,7 +15,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { ModeToggle } from "@/components/mode-toggle";
+import { ModeToggle } from "@/components/shared/mode-toggle";
 import { EllipsisVertical, LogOut } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";

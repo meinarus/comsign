@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ModeToggle } from "@/components/mode-toggle";
+import { ModeToggle } from "@/components/shared/mode-toggle";
 import Image from "next/image";
 
 interface NavbarProps {

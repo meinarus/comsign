@@ -37,9 +37,9 @@ export const adminActions = {
     }
   },
 
-  async setName(userId: string, name: string) {
+  async setName(userId: string, newName: string) {
     try {
-      return await updateName(userId, name);
+      return await updateName(userId, newName);
     } catch (error) {
       console.error("Failed to update name:", error);
       throw error;
@@ -47,12 +47,7 @@ export const adminActions = {
   },
 
   async setEmail(userId: string, email: string) {
-    try {
-      return await updateEmail(userId, email);
-    } catch (error) {
-      console.error("Failed to update email:", error);
-      throw error;
-    }
+    return await updateEmail(userId, email);
   },
 
   async setEmailVerified(userId: string, emailVerified: boolean) {

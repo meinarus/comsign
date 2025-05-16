@@ -1,4 +1,4 @@
-import { Navbar } from "@/components/navbar";
+import { Navbar } from "@/components/shared/navbar";
 import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
 

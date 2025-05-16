@@ -2,8 +2,8 @@
 
 import * as React from "react";
 
-import { SidebarNavMain } from "@/components/admin-dashboard/sidebar-main";
-import { SidebarNavUser } from "@/components/admin-dashboard/sidebar-user";
+import { SidebarNavMain } from "@/components/user/dashboard/sidebar-main";
+import { SidebarNavUser } from "@/components/user/dashboard/sidebar-user";
 import {
   Sidebar,
   SidebarContent,
@@ -15,12 +15,17 @@ import {
 } from "@/components/ui/sidebar";
 
 import Link from "next/link";
-import { ScanLine, Users } from "lucide-react";
+import { ClipboardList, ScanLine, Users } from "lucide-react";
 
 const navMain = [
   {
-    title: "Users",
-    url: "/admin/dashboard/users",
+    title: "Attendance",
+    url: "/dashboard/attendance",
+    icon: ClipboardList,
+  },
+  {
+    title: "Students",
+    url: "/dashboard/students",
     icon: Users,
   },
 ];

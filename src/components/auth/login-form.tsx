@@ -1,8 +1,6 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import {
   Form,
   FormControl,
@@ -27,25 +25,24 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-const formSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
+interface LoginFormValues {
+  email: string;
+  password: string;
+}
 
 export function LoginForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<LoginFormValues>({
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: LoginFormValues) {
     try {
       await authClient.signIn.email(
         {
@@ -56,7 +53,12 @@ export function LoginForm() {
           onRequest: () => {
             setLoading(true);
           },
-          onSuccess: () => router.replace("/dashboard"),
+          onSuccess: () => {
+            toast.success("Signin Successful", {
+              description: "You have successfully logged in.",
+            });
+            router.replace("/dashboard");
+          },
           onError: (ctx) => {
             toast.error("Signin Failed", {
               description:

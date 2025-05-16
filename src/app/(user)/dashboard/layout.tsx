@@ -1,24 +1,18 @@
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "@/components/user-dashboard/dashboard-sidebar";
-import { DashboardHeader } from "@/components/user-dashboard/dashboard-header";
-import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+"use client";
 
-export default async function DashboardLayout({
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { DashboardSidebar } from "@/components/user/dashboard/dashboard-sidebar";
+import { DashboardHeader } from "@/components/user/dashboard/dashboard-header";
+import { authClient } from "@/lib/auth-client";
+
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const { data: session } = authClient.useSession();
 
-  if (!session) {
-    return redirect("/login");
-  }
-
-  const user = session.user;
+  if (!session) return null;
 
   return (
     <SidebarProvider
@@ -29,7 +23,7 @@ export default async function DashboardLayout({
         } as React.CSSProperties
       }
     >
-      <DashboardSidebar variant="inset" user={user} />
+      <DashboardSidebar variant="inset" user={session.user} />
       <SidebarInset>
         <DashboardHeader />
         <div className="pt-4 md:pt-6">{children}</div>
