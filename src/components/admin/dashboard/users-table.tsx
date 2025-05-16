@@ -10,9 +10,6 @@ import {
 } from "@/components/ui/table";
 import {
   ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -26,13 +23,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Loader2, MoreHorizontal } from "lucide-react";
+import { Loader2, MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { adminActions } from "@/actions/admin";
 import { User } from "@/types/user";
@@ -44,8 +40,7 @@ export default function UsersTable() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [globalFilter, setGlobalFilter] = useState("");
   const [rowSelection, setRowSelection] = useState({});
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -54,10 +49,6 @@ export default function UsersTable() {
     pageIndex: 0,
     pageSize: 10,
   });
-
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: "createdAt", desc: false },
-  ]);
 
   const columns: ColumnDef<User>[] = [
     {
@@ -85,13 +76,10 @@ export default function UsersTable() {
           />
         </div>
       ),
-      enableSorting: false,
-      enableHiding: false,
     },
     {
       accessorKey: "name",
       header: "Name",
-      enableSorting: false,
       cell: ({ row }) => {
         return <div className="capitalize">{row.getValue("name")}</div>;
       },
@@ -99,7 +87,6 @@ export default function UsersTable() {
     {
       accessorKey: "email",
       header: "Email",
-      enableSorting: false,
       cell: ({ row }) => {
         return <div>{row.getValue("email")}</div>;
       },
@@ -107,7 +94,6 @@ export default function UsersTable() {
     {
       accessorKey: "banned",
       header: "Status",
-      enableSorting: false,
       cell: ({ row }) => {
         return <div>{row.getValue("banned") ? "Banned" : "Active"}</div>;
       },
@@ -115,7 +101,6 @@ export default function UsersTable() {
     {
       accessorKey: "emailVerified",
       header: "Verified",
-      enableSorting: false,
       cell: ({ row }) => {
         return <div>{row.getValue("emailVerified") ? "Yes" : "No"}</div>;
       },
@@ -124,7 +109,7 @@ export default function UsersTable() {
     {
       accessorKey: "role",
       header: "Role",
-      enableSorting: false,
+      enableGlobalFilter: false,
       cell: ({ row }) => {
         return <div className="capitalize">{row.getValue("role")}</div>;
       },
@@ -133,8 +118,6 @@ export default function UsersTable() {
       id: "createdAt",
       accessorFn: (row) => new Date(row.createdAt),
       header: "Joined",
-      enableSorting: true,
-      sortingFn: "datetime",
       cell: ({ getValue }) => {
         const date = getValue() as Date;
         return <div>{date.toLocaleDateString()}</div>;
@@ -142,8 +125,7 @@ export default function UsersTable() {
     },
     {
       id: "actions",
-      enableHiding: false,
-      enableSorting: false,
+
       cell: ({ row }) => {
         const user = row.original;
 
@@ -211,64 +193,31 @@ export default function UsersTable() {
     data: users,
     columns,
     state: {
-      columnFilters,
-      columnVisibility,
+      globalFilter,
       rowSelection,
       pagination: { pageIndex, pageSize },
-      sorting,
     },
-    onSortingChange: setSorting,
     onPaginationChange: setPagination,
     manualPagination: true,
     pageCount: -1,
-    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    globalFilterFn: "includesString",
   });
 
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter emails..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
-          }
+          placeholder="Search name or email..."
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
           className="max-w-sm"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {typeof column.columnDef.header === "string"
-                      ? column.columnDef.header
-                      : column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
       <div className="rounded-md border">
         <Table>
