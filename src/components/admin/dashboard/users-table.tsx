@@ -219,7 +219,7 @@ export default function UsersTable() {
           className="max-w-sm"
         />
       </div>
-      <div className="rounded-md border">
+      <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader className="bg-muted">
             {table.getHeaderGroups().map((headerGroup) => (
