@@ -19,7 +19,6 @@ import {
 } from "@tanstack/react-table";
 import { useState, useEffect, useCallback } from "react";
 import { authClient } from "@/lib/auth-client";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -41,7 +40,6 @@ export default function UsersTable() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [globalFilter, setGlobalFilter] = useState("");
-  const [rowSelection, setRowSelection] = useState({});
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -51,32 +49,6 @@ export default function UsersTable() {
   });
 
   const columns: ColumnDef<User>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <div className="flex items-center justify-center">
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div className="flex items-center justify-center">
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        </div>
-      ),
-    },
     {
       accessorKey: "name",
       header: "Name",
@@ -105,7 +77,6 @@ export default function UsersTable() {
         return <div>{row.getValue("emailVerified") ? "Yes" : "No"}</div>;
       },
     },
-
     {
       accessorKey: "role",
       header: "Role",
@@ -125,7 +96,6 @@ export default function UsersTable() {
     },
     {
       id: "actions",
-
       cell: ({ row }) => {
         const user = row.original;
 
@@ -194,7 +164,6 @@ export default function UsersTable() {
     columns,
     state: {
       globalFilter,
-      rowSelection,
       pagination: { pageIndex, pageSize },
     },
     onPaginationChange: setPagination,
@@ -205,7 +174,6 @@ export default function UsersTable() {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onRowSelectionChange: setRowSelection,
     globalFilterFn: "includesString",
   });
 
@@ -267,10 +235,7 @@ export default function UsersTable() {
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
@@ -298,10 +263,6 @@ export default function UsersTable() {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-muted-foreground flex-1 text-sm">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
         <div className="space-x-2">
           <Button
             variant="outline"
