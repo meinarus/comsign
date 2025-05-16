@@ -17,7 +17,7 @@ export default async function AuthLayout({
     if (session.user.role === "admin") {
       return redirect("/admin/dashboard");
     } else {
-      return redirect("/dashboard");
+      return redirect("/scan");
     }
   }
 

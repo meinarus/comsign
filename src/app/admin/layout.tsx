@@ -16,7 +16,7 @@ export default async function AdminLayout({
   }
 
   if (session.user.role !== "admin") {
-    return redirect("/dashboard");
+    return redirect("/");
   }
 
   const user = session.user;
