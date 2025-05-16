@@ -1,3 +1,4 @@
+import { VerifyPassword } from "@/components/auth/verify-password";
 import { Navbar } from "@/components/shared/navbar";
 
 export default function ScanLayout({
@@ -7,7 +8,9 @@ export default function ScanLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar></Navbar>
+      <Navbar>
+        <VerifyPassword />
+      </Navbar>
       <main className="flex flex-1 items-center justify-center p-6 md:p-10">
         {children}
       </main>
