@@ -140,7 +140,7 @@ export default function EditInfo({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="p-2">
         <SheetHeader>
-          <SheetTitle>Edit User</SheetTitle>
+          <SheetTitle>Edit Student</SheetTitle>
           <SheetDescription>Make changes and save them.</SheetDescription>
         </SheetHeader>
 
@@ -188,7 +188,7 @@ export default function EditInfo({
               name="nfcUid"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Student ID</FormLabel>
+                  <FormLabel>NFC UID</FormLabel>
                   <FormControl>
                     <Input
                       type="nfcUid"
