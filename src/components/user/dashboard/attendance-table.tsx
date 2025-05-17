@@ -20,8 +20,42 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { AttendanceRecord } from "@/types/attendance";
 import { listAttendance } from "@/actions/attendance";
+
+const calculateDuration = (timeIn: string, timeOut: string | null) => {
+  if (!timeOut) return "-";
+
+  try {
+    const createRoundedDate = (isoString: string) => {
+      const d = new Date(isoString);
+      return new Date(
+        d.getFullYear(),
+        d.getMonth(),
+        d.getDate(),
+        d.getHours(),
+        d.getMinutes(),
+      );
+    };
+
+    const start = createRoundedDate(timeIn);
+    const end = createRoundedDate(timeOut);
+    const diff = end.getTime() - start.getTime();
+
+    const totalMinutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    return `${hours}h ${minutes}m`;
+  } catch {
+    return "-";
+  }
+};
+
+const getAttendanceStatus = (timeOut: string | null) => {
+  return timeOut ? "Completed" : "Pending";
+};
 
 export default function AttendanceTable({ userId }: { userId: string }) {
   const [attendanceRecords, setAttendanceRecords] = useState<
@@ -35,16 +69,14 @@ export default function AttendanceTable({ userId }: { userId: string }) {
     {
       accessorKey: "studentName",
       header: "Student Name",
-      cell: ({ row }) => {
-        return <div className="capitalize">{row.getValue("studentName")}</div>;
-      },
+      cell: ({ row }) => (
+        <div className="capitalize">{row.getValue("studentName")}</div>
+      ),
     },
     {
       accessorKey: "studentId",
       header: "Student ID",
-      cell: ({ row }) => {
-        return <div>{row.getValue("studentId")}</div>;
-      },
+      cell: ({ row }) => <div>{row.getValue("studentId")}</div>,
     },
     {
       accessorKey: "createdAt",
@@ -59,14 +91,10 @@ export default function AttendanceTable({ userId }: { userId: string }) {
       header: "Time In",
       cell: ({ row }) => {
         const time = new Date(row.getValue("timeIn"));
-        return (
-          <div>
-            {time.toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "numeric",
-            })}
-          </div>
-        );
+        return time.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
       },
     },
     {
@@ -74,15 +102,35 @@ export default function AttendanceTable({ userId }: { userId: string }) {
       header: "Time Out",
       cell: ({ row }) => {
         const raw = row.getValue<string | null>("timeOut");
+        return raw
+          ? new Date(raw).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "-";
+      },
+    },
+    {
+      accessorKey: "duration",
+      header: "Duration",
+      cell: ({ row }) => {
+        const timeIn = row.getValue<string>("timeIn");
+        const timeOut = row.getValue<string | null>("timeOut");
+        return <div>{calculateDuration(timeIn, timeOut)}</div>;
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const timeOut = row.getValue<string | null>("timeOut");
         return (
-          <div>
-            {raw
-              ? new Date(raw).toLocaleTimeString([], {
-                  hour: "numeric",
-                  minute: "numeric",
-                })
-              : "-"}
-          </div>
+          <Badge
+            variant={timeOut ? "default" : "secondary"}
+            className="min-w-[100px] justify-center"
+          >
+            {getAttendanceStatus(timeOut)}
+          </Badge>
         );
       },
     },
@@ -92,21 +140,13 @@ export default function AttendanceTable({ userId }: { userId: string }) {
     try {
       setIsLoading(true);
       setError(null);
-
       const result = await listAttendance(userId);
 
-      if (result.error) {
-        throw new Error(result.error);
-      }
-
-      if (result.data) {
-        setAttendanceRecords(result.data);
-      }
+      if (result.error) throw new Error(result.error);
+      setAttendanceRecords(result.data || []);
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err
-          : new Error("Failed to fetch attendance records"),
+        err instanceof Error ? err : new Error("Failed to fetch records"),
       );
     } finally {
       setIsLoading(false);
@@ -136,18 +176,32 @@ export default function AttendanceTable({ userId }: { userId: string }) {
     const rows = table.getRowModel().rows.map((row) =>
       table.getVisibleLeafColumns().map((col) => {
         const raw = row.getValue(col.id);
+
+        if (col.id === "duration") {
+          const timeIn = row.getValue<string>("timeIn");
+          const timeOut = row.getValue<string | null>("timeOut");
+          const duration = calculateDuration(timeIn, timeOut);
+          return duration === "-" ? "" : duration;
+        }
+
+        if (col.id === "status") {
+          return getAttendanceStatus(row.getValue<string | null>("timeOut"));
+        }
+
         if (col.id === "createdAt") {
           const d = new Date(raw as string);
           return d.toLocaleDateString();
         }
+
         if (col.id === "timeIn" || col.id === "timeOut") {
           if (!raw) return "";
           const t = new Date(raw as string);
           return t.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
           });
         }
+
         return String(raw ?? "");
       }),
     );
@@ -190,21 +244,14 @@ export default function AttendanceTable({ userId }: { userId: string }) {
           <TableHeader className="bg-muted">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      className="px-4 py-2 text-center"
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} className="px-4 py-2 text-center">
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext(),
+                    )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -213,7 +260,7 @@ export default function AttendanceTable({ userId }: { userId: string }) {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 px-4 py-2 text-center"
+                  className="h-24 text-center"
                 >
                   <div className="flex items-center justify-center">
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -224,11 +271,9 @@ export default function AttendanceTable({ userId }: { userId: string }) {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 px-4 py-2 text-center"
+                  className="h-24 text-center"
                 >
-                  <div className="text-destructive">
-                    Failed to load attendance records: {error.message}
-                  </div>
+                  <div className="text-destructive">{error.message}</div>
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
@@ -251,9 +296,9 @@ export default function AttendanceTable({ userId }: { userId: string }) {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 px-4 py-2 text-center"
+                  className="h-24 text-center"
                 >
-                  No results.
+                  No attendance records found
                 </TableCell>
               </TableRow>
             )}
