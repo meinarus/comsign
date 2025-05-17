@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import { reauthenticate } from "@/actions/reauthenticate";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -27,6 +26,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useSearchParams } from "next/navigation";
 
 const formSchema = z.object({
   password: z.string(),
@@ -34,9 +34,10 @@ const formSchema = z.object({
 
 export function VerifyPassword() {
   const { data: session } = authClient.useSession();
-  const router = useRouter();
   const [isLoading, startTransition] = useTransition();
   const [isOpen, setIsOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? "/dashboard";
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,6 +53,7 @@ export function VerifyPassword() {
       const { success } = await reauthenticate({
         password: values.password,
         userId: session.user.id,
+        next,
       });
 
       if (!success) {
@@ -63,7 +65,6 @@ export function VerifyPassword() {
       } else {
         form.reset();
         setIsOpen(false);
-        router.push("/dashboard");
       }
     });
   }

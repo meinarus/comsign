@@ -2,6 +2,33 @@ import { betterFetch } from "@better-fetch/fetch";
 import type { auth } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
+const SECRET = process.env.BETTER_AUTH_SECRET!;
+
+async function verifyFlag(signed: string) {
+  const [value, sig] = signed.split(".");
+  if (!value || !sig) return null;
+
+  let base64 = sig.replace(/-/g, "+").replace(/_/g, "/");
+
+  while (base64.length % 4) {
+    base64 += "=";
+  }
+
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(SECRET),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["verify"],
+  );
+
+  const sigBuf = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  const ok = await crypto.subtle.verify("HMAC", key, sigBuf, enc.encode(value));
+
+  return ok ? value : null;
+}
+
 type Session = typeof auth.$Infer.Session;
 
 export async function middleware(request: NextRequest) {
@@ -9,8 +36,10 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   const publicRoutes = ["/", "/login", "/signup"];
-  if (publicRoutes.includes(pathname)) return response;
-
+  if (publicRoutes.includes(pathname)) {
+    response.cookies.delete({ name: "reauthenticated", path: "/dashboard" });
+    return response;
+  }
   const { data: session } = await betterFetch<Session>(
     "/api/auth/get-session",
     {
@@ -18,14 +47,13 @@ export async function middleware(request: NextRequest) {
       headers: { cookie: request.headers.get("cookie") || "" },
     },
   );
-
   if (!session) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
   if (pathname.startsWith("/dashboard")) {
-    const reauth = request.cookies.get("reauthenticated")?.value === "1";
-    if (!reauth) {
+    const raw = request.cookies.get("reauthenticated")?.value ?? "";
+    if ((await verifyFlag(raw)) !== "1") {
       const redirectUrl = new URL("/scan", origin);
       redirectUrl.searchParams.set("next", pathname + search);
       return NextResponse.redirect(redirectUrl);

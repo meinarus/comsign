@@ -53,11 +53,17 @@ export function LoginForm() {
           onRequest: () => {
             setLoading(true);
           },
-          onSuccess: () => {
+          onSuccess: async () => {
             toast.success("Signin Successful", {
               description: "You have successfully logged in.",
             });
-            router.replace("/dashboard");
+            const { data: session } = await authClient.getSession();
+            const role = session?.user?.role;
+            if (role === "admin") {
+              router.replace("/admin/dashboard");
+            } else {
+              router.replace("/scan");
+            }
           },
           onError: (ctx) => {
             toast.error("Signin Failed", {
