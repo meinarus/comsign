@@ -12,7 +12,13 @@ import {
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { ScanLine, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+import {
+  ScanLine,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -40,7 +46,7 @@ export function ScanId({ className, ...props }: React.ComponentProps<"div">) {
   const [activeTab, setActiveTab] = useState<string>("timein");
   const timeInInputRef = useRef<HTMLInputElement>(null);
   const timeOutInputRef = useRef<HTMLInputElement>(null);
-
+  const [isScanning, setIsScanning] = useState(false);
   const [isScanResultDialogOpen, setIsScanResultDialogOpen] = useState(false);
   const [scanResultInfo, setScanResultInfo] = useState<{
     title: string;
@@ -118,8 +124,11 @@ export function ScanId({ className, ...props }: React.ComponentProps<"div">) {
     scanType: "Time In" | "Time Out",
   ) => {
     const userId = session?.user.id;
+    let isAlreadyChecked = false;
 
     try {
+      setIsScanning(true);
+
       if (!scannedValue || !userId) {
         openDialogWithInfo(
           "Invalid Scan",
@@ -141,12 +150,11 @@ export function ScanId({ className, ...props }: React.ComponentProps<"div">) {
       };
 
       if (timeMap[scanType]) {
+        isAlreadyChecked = true;
         throw new Error(
           `Student Name: ${studentName}\n` +
             `Student ID: ${studentId}\n` +
-            `Status: Already ${scanType === "Time In" ? "checked in" : "checked out"} at ${timeMap[
-              scanType
-            ]?.toLocaleTimeString([], {
+            `Time: ${timeMap[scanType]?.toLocaleTimeString([], {
               hour: "numeric",
               minute: "numeric",
             })}`,
@@ -198,13 +206,20 @@ export function ScanId({ className, ...props }: React.ComponentProps<"div">) {
       const formattedMessage = (
         <div className="whitespace-pre-wrap">{message}</div>
       );
+
+      const errorTitle = isAlreadyChecked
+        ? `Already ${scanType === "Time In" ? "Checked In" : "Checked Out"}`
+        : "Operation Failed";
+
       openDialogWithInfo(
-        "Operation Failed",
+        errorTitle,
         formattedMessage,
         "error",
         XCircle,
         DIALOG_ERROR_DURATION,
       );
+    } finally {
+      setIsScanning(false);
     }
   };
 
@@ -397,7 +412,14 @@ export function ScanId({ className, ...props }: React.ComponentProps<"div">) {
           </Tabs>
         </CardContent>
         <CardFooter className="text-muted-foreground mt-auto flex items-center justify-center text-sm">
-          <p>Waiting for NFC scan...</p>
+          {isScanning ? (
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Scanning...</span>
+            </div>
+          ) : (
+            <p>Waiting for NFC scan...</p>
+          )}
         </CardFooter>
       </Card>
 
