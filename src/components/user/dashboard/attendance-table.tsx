@@ -73,13 +73,15 @@ export default function AttendanceTable({ userId }: { userId: string }) {
       accessorKey: "timeOut",
       header: "Time Out",
       cell: ({ row }) => {
-        const time = new Date(row.getValue("timeOut"));
+        const raw = row.getValue<string | null>("timeOut");
         return (
           <div>
-            {time.toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "numeric",
-            })}
+            {raw
+              ? new Date(raw).toLocaleTimeString([], {
+                  hour: "numeric",
+                  minute: "numeric",
+                })
+              : "-"}
           </div>
         );
       },
@@ -139,6 +141,7 @@ export default function AttendanceTable({ userId }: { userId: string }) {
           return d.toLocaleDateString();
         }
         if (col.id === "timeIn" || col.id === "timeOut") {
+          if (!raw) return "";
           const t = new Date(raw as string);
           return t.toLocaleTimeString([], {
             hour: "numeric",
