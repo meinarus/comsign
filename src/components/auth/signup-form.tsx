@@ -105,7 +105,12 @@ export function SignupForm() {
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your name" required {...field} />
+                    <Input
+                      placeholder="Your name"
+                      required
+                      {...field}
+                      disabled={loading}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -124,6 +129,7 @@ export function SignupForm() {
                       placeholder="Your email"
                       required
                       {...field}
+                      disabled={loading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -144,11 +150,13 @@ export function SignupForm() {
                         placeholder="Your password"
                         required
                         {...field}
+                        disabled={loading}
                       />
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
+                        disabled={loading}
                         className="absolute top-0 right-0 h-full px-3 py-2"
                         onClick={() => setShowPassword((prev) => !prev)}
                         aria-label={

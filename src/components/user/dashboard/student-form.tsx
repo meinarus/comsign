@@ -134,6 +134,7 @@ export function StudentForm({ userId, refetchStudents }: StudentFormProps) {
                       placeholder="Enter name"
                       required
                       {...field}
+                      disabled={loading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -153,6 +154,7 @@ export function StudentForm({ userId, refetchStudents }: StudentFormProps) {
                       placeholder="Enter Student ID"
                       required
                       {...field}
+                      disabled={loading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -172,6 +174,7 @@ export function StudentForm({ userId, refetchStudents }: StudentFormProps) {
                       placeholder="Enter NFC UID"
                       required
                       {...field}
+                      disabled={loading}
                     />
                   </FormControl>
                   <FormMessage />

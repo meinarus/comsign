@@ -157,7 +157,12 @@ export default function EditInfo({
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input required className="w-full" {...field} />
+                    <Input
+                      required
+                      className="w-full"
+                      {...field}
+                      disabled={loading}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -176,6 +181,7 @@ export default function EditInfo({
                       required
                       className="w-full"
                       {...field}
+                      disabled={loading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -195,6 +201,7 @@ export default function EditInfo({
                       required
                       className="w-full"
                       {...field}
+                      disabled={loading}
                     />
                   </FormControl>
                   <FormMessage />

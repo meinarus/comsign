@@ -172,7 +172,12 @@ export default function EditInfo({
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input required className="w-full" {...field} />
+                    <Input
+                      required
+                      className="w-full"
+                      {...field}
+                      disabled={loading}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -191,6 +196,7 @@ export default function EditInfo({
                       required
                       className="w-full"
                       {...field}
+                      disabled={loading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -208,7 +214,7 @@ export default function EditInfo({
                     onValueChange={(val) => field.onChange(val === "true")}
                     value={String(field.value)}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full" disabled={loading}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -231,7 +237,7 @@ export default function EditInfo({
                     onValueChange={(val) => field.onChange(val === "true")}
                     value={String(field.value)}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full" disabled={loading}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -251,7 +257,7 @@ export default function EditInfo({
                 <FormItem>
                   <FormLabel>Role</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full" disabled={loading}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

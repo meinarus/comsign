@@ -108,6 +108,7 @@ export function LoginForm() {
                       placeholder="Your email"
                       required
                       {...field}
+                      disabled={loading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -128,6 +129,7 @@ export function LoginForm() {
                         placeholder="Your password"
                         required
                         {...field}
+                        disabled={loading}
                       />
                       <Button
                         type="button"
