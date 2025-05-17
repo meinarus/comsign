@@ -4,7 +4,7 @@ import { db } from "@/db/db";
 import { attendance } from "@/db/schema/attendance";
 import { student } from "@/db/schema/student";
 import { AttendanceRecord } from "@/types/attendance";
-import { eq, and, gte, lte } from "drizzle-orm";
+import { eq, and, gte, lte, isNull, desc } from "drizzle-orm";
 
 const getDayBounds = () => {
   const start = new Date();
@@ -92,12 +92,15 @@ export async function recordTimeOut(
         eq(attendance.studentId, found.id),
         gte(attendance.timeIn, start),
         lte(attendance.timeIn, end),
+        isNull(attendance.timeOut),
       ),
-    );
+    )
+    .orderBy(desc(attendance.timeIn))
+    .limit(1);
 
-  if (!existing)
-    return { error: "No time-in found. Please scan to time in first." };
-  if (existing.timeOut) return { error: "You have already timed out today." };
+  if (!existing) {
+    return { error: "No time in found. Please scan to time in first." };
+  }
 
   const [updated] = await db
     .update(attendance)
