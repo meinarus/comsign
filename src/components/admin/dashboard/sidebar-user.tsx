@@ -28,6 +28,7 @@ export function SidebarNavUser({
         name: string;
         email: string;
         image?: string | null;
+        role?: string | null;
       }
     | undefined;
 }) {
@@ -57,8 +58,8 @@ export function SidebarNavUser({
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user?.name}</span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {user?.email}
+                <span className="text-muted-foreground text-xs capitalize">
+                  {user?.role}
                 </span>
               </div>
               <EllipsisVertical />

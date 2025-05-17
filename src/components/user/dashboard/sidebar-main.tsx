@@ -11,18 +11,24 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { LayoutDashboard, ScanLine } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { LayoutDashboard, ScanLine, ShieldUser } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export function SidebarNavMain({
   items,
+  user,
 }: {
   items: {
     title: string;
     url: string;
     icon: ElementType;
   }[];
+  user:
+    | {
+        role?: string | null;
+      }
+    | undefined;
 }) {
   const pathname = usePathname();
 
@@ -50,15 +56,30 @@ export function SidebarNavMain({
             ))}
           </SidebarMenuSub>
         </SidebarMenuItem>
-
-        <Separator className="my-2" />
+        <Separator className="bg-sidebar-border my-2" />
         <SidebarMenuItem className="flex justify-center">
-          <Button asChild variant="outline">
-            <Link href="/scan" className="flex items-center gap-2">
-              <ScanLine />
-              <span>Scan Now</span>
+          {user?.role === "admin" && (
+            <Link
+              href="/admin/dashboard"
+              className={buttonVariants({
+                variant: "outline",
+              })}
+            >
+              <ShieldUser />
+              Admin Dashboard
             </Link>
-          </Button>
+          )}
+        </SidebarMenuItem>
+        <SidebarMenuItem className="flex justify-center">
+          <Link
+            href="/scan"
+            className={buttonVariants({
+              variant: "outline",
+            })}
+          >
+            <ScanLine />
+            Scan
+          </Link>
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>

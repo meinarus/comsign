@@ -36,6 +36,7 @@ interface DashboardSidebarProps {
         name: string;
         email: string;
         image?: string | null;
+        role?: string | null;
       }
     | undefined;
 }
@@ -58,7 +59,7 @@ export function DashboardSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarNavMain items={navMain} />
+        <SidebarNavMain items={navMain} user={props.user} />
       </SidebarContent>
       <SidebarFooter>
         <SidebarNavUser user={props.user} />

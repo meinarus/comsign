@@ -11,7 +11,9 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, ScanLine } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { buttonVariants } from "@/components/ui/button";
 
 export function SidebarNavMain({
   items,
@@ -47,6 +49,18 @@ export function SidebarNavMain({
               </SidebarMenuSubItem>
             ))}
           </SidebarMenuSub>
+        </SidebarMenuItem>
+        <Separator className="bg-sidebar-border my-2" />
+        <SidebarMenuItem className="flex justify-center">
+          <Link
+            href="/scan"
+            className={buttonVariants({
+              variant: "outline",
+            })}
+          >
+            <ScanLine />
+            Scan
+          </Link>
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>

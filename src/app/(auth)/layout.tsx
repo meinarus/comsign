@@ -14,11 +14,7 @@ export default async function AuthLayout({
   const session = await getSession();
 
   if (session) {
-    if (session.user.role === "admin") {
-      return redirect("/admin/dashboard");
-    } else {
-      return redirect("/scan");
-    }
+    redirect(session.user.role === "admin" ? "/admin/dashboard" : "/scan");
   }
 
   return (
