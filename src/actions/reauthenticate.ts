@@ -28,7 +28,6 @@ export async function reauthenticate(data: {
   (await cookies()).set({
     name: "reauthenticated",
     value: signed,
-    maxAge: 5 * 60,
     path: "/dashboard",
     httpOnly: true,
     secure: true,
