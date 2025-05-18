@@ -4,7 +4,7 @@ import { db } from "@/db/db";
 import { attendance } from "@/db/schema/attendance";
 import { student } from "@/db/schema/student";
 import { AttendanceRecord } from "@/types/attendance";
-import { eq, and, gte, lte, isNull, desc } from "drizzle-orm";
+import { eq, and, gte, lte, isNull, asc, desc } from "drizzle-orm";
 
 const getDayBounds = () => {
   const start = new Date();
@@ -119,7 +119,13 @@ export async function recordTimeOut(
   };
 }
 
-export async function listAttendance(userId: string): Promise<{
+export async function listAttendance(
+  userId: string,
+  sortField: "createdAt" | "updatedAt",
+  startDate?: string,
+  endDate?: string,
+  sortOrder: "asc" | "desc" = "asc",
+): Promise<{
   data?: AttendanceRecord[];
   error?: string;
 }> {
@@ -139,7 +145,19 @@ export async function listAttendance(userId: string): Promise<{
         student,
         and(eq(student.id, attendance.studentId), eq(student.userId, userId)),
       )
-      .orderBy(attendance.createdAt);
+      .where(
+        and(
+          startDate
+            ? gte(attendance[sortField], new Date(startDate))
+            : undefined,
+          endDate ? lte(attendance[sortField], new Date(endDate)) : undefined,
+        ),
+      )
+      .orderBy(
+        sortOrder === "asc"
+          ? asc(attendance[sortField])
+          : desc(attendance[sortField]),
+      );
 
     return { data: attendanceRecord };
   } catch (err) {
