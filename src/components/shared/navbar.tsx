@@ -15,11 +15,11 @@ export function Navbar({ children }: NavbarProps) {
       <nav className="container mx-auto flex items-center justify-between p-3 xl:px-30">
         <Link href="/" className="flex items-center gap-2">
           <Image
-            src="/favicon.ico"
+            src="/ComSign Logo.svg"
             alt="ComSign Logo"
             width={32}
             height={32}
-            className="h-8 w-8"
+            className="h-8 w-8 dark:invert"
           />
           <span className="text-xl font-bold">ComSign</span>
         </Link>

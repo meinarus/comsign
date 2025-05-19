@@ -1,9 +1,9 @@
-import { LandingPage } from "@/components/landing/landing-page";
+import { Hero } from "@/components/landing/hero";
 
 export default function Page() {
   return (
     <div className="w-full max-w-4xl">
-      <LandingPage />
+      <Hero />
     </div>
   );
 }
