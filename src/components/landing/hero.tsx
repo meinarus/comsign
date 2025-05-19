@@ -1,7 +1,8 @@
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { ArrowUpRight, ScanLine } from "lucide-react";
 import React from "react";
 import { Card } from "@/components/ui/card";
+import Link from "next/link";
 
 export function Hero() {
   return (
@@ -17,9 +18,16 @@ export function Hero() {
             record and manage attendance.
           </p>
           <div className="flex items-center justify-center gap-4">
-            <Button size="lg" className="rounded-full text-base">
-              Get Started <ArrowUpRight className="!h-5 !w-5" />
-            </Button>
+            <Link
+              href="/signup"
+              className={buttonVariants({
+                variant: "default",
+                size: "lg",
+              })}
+            >
+              Get Started
+              <ArrowUpRight className="!h-5 !w-5" />
+            </Link>
           </div>
         </Card>
       </div>
