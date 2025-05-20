@@ -15,7 +15,7 @@ export function Navbar({ children }: NavbarProps) {
       <nav className="container mx-auto flex items-center justify-between p-3 xl:px-30">
         <Link href="/" className="flex items-center gap-2">
           <Image
-            src="/ComSign Logo.svg"
+            src="/logo.svg"
             alt="ComSign Logo"
             width={32}
             height={32}
