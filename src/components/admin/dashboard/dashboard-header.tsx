@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 
 const routes = [
   {
-    name: "Dashboard",
+    name: "Admin Dashboard",
     path: "/admin/dashboard",
     description: "Overview of your dashboard",
   },
