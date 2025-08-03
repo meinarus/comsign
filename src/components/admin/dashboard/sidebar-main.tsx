@@ -33,7 +33,7 @@ export function SidebarNavMain({
           <SidebarMenuButton asChild isActive={pathname === "/admin/dashboard"}>
             <Link href="/admin/dashboard" className="flex items-center gap-2">
               <LayoutDashboard />
-              Dashboard
+              Admin Dashboard
             </Link>
           </SidebarMenuButton>
 
