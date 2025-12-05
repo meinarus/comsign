@@ -1,5 +1,5 @@
-import { betterFetch } from "@better-fetch/fetch";
-import type { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 const SECRET = process.env.BETTER_AUTH_SECRET!;
@@ -29,9 +29,7 @@ async function verifyFlag(signed: string) {
   return ok ? value : null;
 }
 
-type Session = typeof auth.$Infer.Session;
-
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname, origin, search } = request.nextUrl;
   const response = NextResponse.next();
 
@@ -40,13 +38,11 @@ export async function middleware(request: NextRequest) {
     response.cookies.delete({ name: "reauthenticated", path: "/dashboard" });
     return response;
   }
-  const { data: session } = await betterFetch<Session>(
-    "/api/auth/get-session",
-    {
-      baseURL: origin,
-      headers: { cookie: request.headers.get("cookie") || "" },
-    },
-  );
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
   if (!session) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
